@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ForgeFlow — Intelligent Production Scheduler</title>
+<style>
+:root{--bg:#f6f7f9;--panel:#fff;--line:#e4e7ec;--text:#171a1f;--muted:#667085;--soft:#f2f4f7;--danger:#b42318;--success:#027a48;--warning:#b54708;--info:#026aa2;--shadow:0 8px 30px rgba(16,24,40,.06)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+.setup{min-height:100vh;display:grid;place-items:center;padding:24px}.setup-card{width:min(520px,100%);background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:40px}.brand{font-weight:700;letter-spacing:-.03em;font-size:20px}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:12px}h1{font-size:34px;line-height:1.1;letter-spacing:-.04em;margin:0 0 12px}h2{font-size:18px;margin:0}p{color:var(--muted);line-height:1.6}.field{margin:20px 0}label{display:block;font-size:13px;font-weight:600;margin-bottom:8px}input,select{width:100%;border:1px solid #d0d5dd;background:#fff;border-radius:9px;padding:11px 12px;outline:none;color:var(--text)}input:focus,select:focus{border-color:#98a2b3;box-shadow:0 0 0 3px rgba(52,64,84,.08)}
+.btn{border:1px solid var(--line);background:#fff;color:var(--text);padding:10px 14px;border-radius:9px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px}.btn:hover{background:var(--soft)}.btn.primary{background:#171a1f;color:#fff;border-color:#171a1f}.btn.primary:hover{background:#30343b}.btn.danger{color:var(--danger);border-color:#f0c4c0}.btn.danger:hover{background:#fef3f2}.btn.success{color:var(--success);border-color:#abefc6}.btn.success:hover{background:#ecfdf3}.btn.full{width:100%;margin-top:8px}
+.app{height:100vh;display:flex;flex-direction:column;overflow:hidden}header{height:62px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}.header-left,.header-right{display:flex;align-items:center;gap:12px}.brand-small{font-weight:750;letter-spacing:-.025em}.industry-pill{font-size:12px;color:var(--muted);border-left:1px solid var(--line);padding-left:12px}.status{font-size:12px;padding:6px 9px;border:1px solid var(--line);border-radius:999px;background:#fafafa;display:inline-flex;align-items:center;gap:5px}.status.optimal{background:#ecfdf3;color:#027a48;border-color:#abefc6}.status.disrupted{background:#fef3f2;color:#b42318;border-color:#fecdca}
+.main{display:grid;grid-template-columns:235px 1fr;min-height:0;flex:1}aside{background:#fff;border-right:1px solid var(--line);padding:16px;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}.nav-title{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#98a2b3;font-weight:700;margin:12px 8px 6px}.nav-item{padding:10px 11px;border-radius:8px;font-size:13px;color:#475467;margin-bottom:3px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}.nav-item:hover{background:#f9fafb;color:#171a1f}.nav-item.active{background:#f2f4f7;color:#171a1f;font-weight:650}.sidebar-note{margin-top:16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fafafa}.sidebar-note strong{font-size:12px}.sidebar-note p{font-size:11px;margin:6px 0 0}
+.workspace{position:relative;min-width:0;overflow:hidden;display:flex;flex-direction:column;flex:1}.workspace-top{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;flex-shrink:0}.workspace-title{font-weight:700;font-size:15px}.workspace-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.view-panel{flex:1;overflow:auto;position:relative;display:none;background:var(--bg)}.view-panel.active{display:block}
+.flow{position:absolute;inset:0;background-color:#fafbfc;background-image:radial-gradient(#d6d9de .8px,transparent .8px);background-size:18px 18px;overflow:auto;padding:45px}.flow-inner{min-width:900px;min-height:650px;position:relative}.empty-flow{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);text-align:center;width:360px}.empty-icon{width:46px;height:46px;border:1px solid var(--line);background:#fff;border-radius:12px;display:grid;place-items:center;margin:0 auto 14px;font-size:22px}.process-node{position:absolute;width:230px;background:#fff;border:1px solid #d9dde3;border-radius:12px;box-shadow:0 4px 18px rgba(16,24,40,.06);cursor:grab;user-select:none;transition:border-color .15s,box-shadow .15s}.process-node:active{cursor:grabbing}.process-node:hover{border-color:#98a2b3}.process-node.selected{border:1.5px solid #344054;box-shadow:0 0 0 3px rgba(52,64,84,.08)}.node-head{padding:12px 13px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.node-number{font-size:10px;color:#98a2b3;font-weight:600}.node-name{font-size:13px;font-weight:700;margin-top:2px}.node-body{padding:12px 13px}.node-row{display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:5px 0}.node-row span:first-child{color:var(--muted)}.node-row span:last-child{text-align:right;font-weight:600}.connector{position:absolute;height:1px;background:#b7bdc7;transform-origin:left center;pointer-events:none}.connector-arrow{position:absolute;width:7px;height:7px;border-top:1px solid #98a2b3;border-right:1px solid #98a2b3;transform:rotate(45deg);pointer-events:none}
+.inspector{position:fixed;top:50%;left:50%;width:min(900px,calc(100vw - 40px));height:min(82vh,820px);background:#fff;border:1px solid var(--line);border-radius:16px;display:flex;flex-direction:column;min-height:0;z-index:30;box-shadow:0 24px 80px rgba(16,24,40,.20);transform:translate(-50%,-46%) scale(.97);opacity:0;visibility:hidden;transition:transform .28s cubic-bezier(.22,1,.36,1),opacity .22s ease,visibility .22s ease}.inspector.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}.inspector-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;flex-shrink:0}.inspector-title{font-weight:700;font-size:16px}.inspector-sub{font-size:11px;color:var(--muted);margin-top:4px}.inspector-body{overflow:auto;padding:20px 22px}.inspector-backdrop{position:fixed;inset:0;background:rgba(16,24,40,.34);backdrop-filter:blur(2px);z-index:25;opacity:0;visibility:hidden;transition:opacity .22s ease,visibility .22s ease}.inspector-backdrop.open{opacity:1;visibility:visible}
+.section{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;background:#fff}.section-head{padding:11px 13px;border-bottom:1px solid var(--line);font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center}.section-body{padding:13px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.field.compact{margin:0 0 10px}.field.compact:last-child{margin-bottom:0}.tabs{display:flex;border-bottom:1px solid var(--line);padding:0 22px;gap:18px}.tab{border:0;background:none;padding:12px 2px 10px;color:var(--muted);font-size:12px;font-weight:650;border-bottom:2px solid transparent}.tab.active{color:var(--text);border-bottom-color:#171a1f}.machine-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.machine-count{font-size:12px;color:var(--muted)}.machine-card{border:1px solid var(--line);border-radius:11px;background:#fafbfc;margin-bottom:10px;overflow:hidden}.machine-card-head{padding:11px 13px;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}.machine-card-title{font-size:12px;font-weight:700}.machine-card-body{padding:13px}.machine-empty{padding:20px;border:1px dashed #cfd4dc;border-radius:10px;text-align:center;background:#fafafa;color:var(--muted);font-size:12px}.machine-remove{font-size:11px;padding:6px 9px}
+.task-list{display:grid;gap:8px}.task{border:1px solid var(--line);border-radius:9px;padding:10px}.task-top{display:flex;justify-content:space-between;gap:8px}.task-name{font-size:12px;font-weight:700}.task-meta{font-size:11px;color:var(--muted);margin-top:4px}.badge{font-size:10px;border-radius:999px;padding:3px 7px;border:1px solid var(--line);white-space:nowrap;font-weight:600}.badge.done,.badge.ontime{color:#027a48;background:#ecfdf3;border-color:#abefc6}.badge.failed,.badge.defect,.badge.late{color:#b42318;background:#fef3f2;border-color:#fecdca}.badge.running{color:#175cd3;background:#eff8ff;border-color:#b2ddff}.badge.warning,.badge.urgent{color:#b54708;background:#fffaeb;border-color:#fedf89}.badge.high{color:#5925dc;background:#f4f3ff;border-color:#d9d6fe}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.metric{padding:14px;border:1px solid var(--line);border-radius:11px;background:#fff;box-shadow:0 1px 3px rgba(16,24,40,.04)}.metric-value{font-size:22px;font-weight:750;letter-spacing:-.02em}.metric-label{font-size:11px;color:var(--muted);margin-top:4px}.metric-diff{font-size:11px;margin-top:6px;font-weight:600}.metric-diff.good{color:var(--success)}.metric-diff.bad{color:var(--danger)}
+.warning{padding:11px 13px;border:1px solid #fedf89;background:#fffaeb;border-radius:9px;font-size:12px;color:#7a5b00;line-height:1.5}.success{padding:11px 13px;border:1px solid #abefc6;background:#ecfdf3;border-radius:9px;font-size:12px;color:#05603a;line-height:1.5}
+.overlay{position:fixed;inset:0;background:rgba(16,24,40,.28);display:grid;place-items:center;padding:20px;z-index:40}.modal{width:min(560px,100%);background:#fff;border-radius:14px;border:1px solid var(--line);box-shadow:0 20px 60px rgba(16,24,40,.18)}.modal-head{padding:18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.modal-body{padding:18px}.modal-foot{padding:14px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}.toast{position:fixed;right:22px;bottom:22px;background:#171a1f;color:#fff;padding:11px 14px;border-radius:9px;font-size:12px;z-index:60;box-shadow:var(--shadow)}
+/* Gantt & Table Styles */
+.panel-content{padding:22px;max-width:1400px;margin:0 auto}
+.gantt-wrapper{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:20px;box-shadow:0 1px 3px rgba(16,24,40,.04)}
+.gantt-head{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;background:#fff}
+.gantt-scroll{overflow-x:auto;padding-bottom:10px}
+.gantt-chart{min-width:880px;position:relative}
+.gantt-time-scale{display:flex;height:28px;border-bottom:1px solid var(--line);background:#fafbfc;margin-left:180px}
+.gantt-hour{flex:1;font-size:10px;color:var(--muted);border-left:1px solid #edf0f2;padding:6px 0 0 5px;font-weight:600}
+.gantt-row{display:flex;min-height:52px;border-bottom:1px solid #f2f4f7;position:relative}
+.gantt-row-label{width:180px;padding:10px 14px;font-size:11px;font-weight:700;color:#344054;background:#fff;border-right:1px solid var(--line);flex-shrink:0;display:flex;flex-direction:column;justify-content:center}
+.gantt-row-sub{font-size:10px;color:var(--muted);font-weight:normal;margin-top:2px}
+.gantt-track{flex:1;position:relative;background-image:linear-gradient(to right,#f2f4f7 1px,transparent 1px);background-size:calc(100% / 12) 100%}
+.gantt-bar{position:absolute;top:9px;height:34px;border-radius:6px;background:#171a1f;color:#fff;padding:0 8px;font-size:11px;display:flex;align-items:center;justify-content:space-between;gap:6px;box-shadow:0 2px 6px rgba(16,24,40,.12);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:transform .12s}
+.gantt-bar:hover{transform:translateY(-1px);filter:brightness(1.1);z-index:10}
+.gantt-bar.urgent{background:#b54708;border:1px solid #f79009}
+.gantt-bar.high{background:#444ce7;border:1px solid #6172f3}
+.gantt-bar.normal{background:#171a1f}
+.gantt-bar.low{background:#475467}
+.gantt-bar.downtime{background:repeating-linear-gradient(45deg,#fee4e2,#fee4e2 8px,#fecdca 8px,#fecdca 16px);color:#b42318;border:1px solid #fecdca;font-weight:700}
+.gantt-bar.delayed{outline:2px solid #f04438}
+.data-table{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+.data-table th{background:#fafbfc;color:#475467;font-weight:650;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
+.data-table td{padding:11px 14px;border-bottom:1px solid #f2f4f7;color:#344054}
+.data-table tr:hover td{background:#fafafa}
+/* Disruption Demo Styles */
+.comparison-card{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:16px 0}
+.scenario-box{border:1px solid var(--line);border-radius:11px;padding:16px;background:#fff}
+.scenario-box.highlight{border-color:#171a1f;box-shadow:0 0 0 1.5px #171a1f}
+.scenario-title{font-size:13px;font-weight:750;margin-bottom:8px}
+.decision-log{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:14px;font-size:12px;margin-top:14px}
+.decision-item{padding:6px 0;display:flex;gap:8px;align-items:flex-start}
+.decision-bullet{width:6px;height:6px;border-radius:50%;background:#171a1f;margin-top:6px;flex-shrink:0}
+@media(max-width:1100px){.main{grid-template-columns:210px 1fr}.inspector{width:min(900px,calc(100vw - 24px));height:min(88vh,820px)}.metric-grid{grid-template-columns:repeat(2,1fr)}.comparison-card{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- Factory Setup Screen -->
+<div id="setupScreen" class="setup">
+  <div class="setup-card">
+    <div class="brand">ForgeFlow</div>
+    <div style="height:30px"></div>
+    <div class="eyebrow">Factory setup</div>
+    <h1>Configure your production environment.</h1>
+    <p>Enter your factory or industry name to start. You can begin with a blank canvas or load an industry-standard production line with full uncertainty simulation.</p>
+    <div class="field">
+      <label>Industry name</label>
+      <input id="industryInput" placeholder="e.g. Precision Metal Machining & Alloy Works">
+    </div>
+    <button id="startBtn" class="btn primary full">Open factory dashboard</button>
+    <button id="loadSampleBtn" class="btn full" style="margin-top:10px;background:#f8f9fc">⚡ Load metal manufacturing demo line</button>
+  </div>
+</div>
+
+<!-- Main Application Layout -->
+<div id="app" class="app hidden">
+  <header>
+    <div class="header-left">
+      <div class="brand-small">ForgeFlow</div>
+      <div id="industryPill" class="industry-pill"></div>
+    </div>
+    <div class="header-right">
+      <span id="setupStatus" class="status optimal">● Schedule: Optimal</span>
+      <button id="recomputeBtn" class="btn" title="Recalculate dynamic schedule">⚡ Re-optimize</button>
+      <button id="resetBtn" class="btn">Reset</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <aside>
+      <div>
+        <div class="nav-title">Factory</div>
+        <div class="nav-item active" data-view="flow">Process Flow</div>
+        <div class="nav-item" data-view="schedule">Production Tasks <span id="taskCountBadge" class="badge">0</span></div>
+        <div class="nav-item" data-view="disruption">Disruption Demo <span id="disruptionAlertBadge" class="badge done">Normal</span></div>
+        
+        <div class="nav-title">Configuration</div>
+        <div class="nav-item" data-view="resources">Resources & Material</div>
+      </div>
+
+      <div class="sidebar-note">
+        <strong>SI-01 Dynamic Engine</strong>
+        <p>Evaluates machine states, setup times, workforce, material constraints & priority deadlines to balance downtime and cost.</p>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <!-- Top workspace header -->
+      <div class="workspace-top">
+        <div>
+          <div id="workspaceTitle" class="workspace-title">Production Flow</div>
+          <div id="workspaceSub" class="workspace-sub">Drag process boxes anywhere. Click a process to configure its machines.</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="addOrderTopBtn" class="btn">+ Add production order</button>
+          <button id="addProcessBtn" class="btn primary">+ Add process</button>
+        </div>
+      </div>
+
+      <!-- VIEW 1: PROCESS FLOW CANVAS -->
+      <div id="viewFlow" class="view-panel active" style="position:relative;height:calc(100vh - 126px)">
+        <div id="flow" class="flow">
+          <div id="flowInner" class="flow-inner"></div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: PRODUCTION TASKS & TIMELINE (GANTT) -->
+      <div id="viewSchedule" class="view-panel">
+        <div class="panel-content">
+          <div class="metric-grid">
+            <div class="metric">
+              <div id="kpiMakespan" class="metric-value">0.0h</div>
+              <div class="metric-label">Total Makespan</div>
+              <div id="kpiMakespanSub" class="metric-diff good">On Schedule</div>
+            </div>
+            <div class="metric">
+              <div id="kpiOnTime" class="metric-value">100%</div>
+              <div class="metric-label">On-Time Delivery Rate</div>
+              <div id="kpiOnTimeSub" class="metric-diff good">0 Tardy Orders</div>
+            </div>
+            <div class="metric">
+              <div id="kpiDowntime" class="metric-value">0m</div>
+              <div class="metric-label">Machine Downtime Loss</div>
+              <div id="kpiDowntimeSub" class="metric-diff">Across all units</div>
+            </div>
+            <div class="metric">
+              <div id="kpiCost" class="metric-value">₹0</div>
+              <div class="metric-label">Total Production Cost</div>
+              <div id="kpiCostSub" class="metric-diff">Machining + Setup + Energy</div>
+            </div>
+          </div>
+
+          <!-- Gantt Timeline -->
+          <div class="gantt-wrapper">
+            <div class="gantt-head">
+              <div>
+                <strong>Dynamic Machine Schedule (Gantt)</strong>
+                <span class="machine-count" style="margin-left:8px">Multi-objective forward dispatching under current factory constraints</span>
+              </div>
+              <div style="display:flex;gap:12px;font-size:11px;color:var(--muted)">
+                <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#171a1f;border-radius:2px"></span> Normal/High</span>
+                <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#b54708;border-radius:2px"></span> Urgent Order</span>
+                <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#fecdca;border:1px solid #b42318;border-radius:2px"></span> Downtime / Defect</span>
+              </div>
+            </div>
+            <div class="gantt-scroll">
+              <div id="ganttChart" class="gantt-chart"></div>
+            </div>
+          </div>
+
+          <!-- Production Orders Table -->
+          <div class="section">
+            <div class="section-head">
+              <span>Active Production Orders & Operations</span>
+              <button class="btn" onclick="openOrderModal()">+ New Order</button>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Order ID & Name</th>
+                    <th>Target Stage</th>
+                    <th>Quantity</th>
+                    <th>Priority</th>
+                    <th>Delivery Deadline</th>
+                    <th>Scheduled Window</th>
+                    <th>Assigned Machine</th>
+                    <th>Est. Cost</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="taskTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: DISRUPTION DEMO -->
+      <div id="viewDisruption" class="view-panel">
+        <div class="panel-content">
+          <div class="section">
+            <div class="section-head">
+              <span>Uncertainty & Disruption Simulator (SI-01 Benchmark)</span>
+              <span class="badge warning">Live Scenario Testing</span>
+            </div>
+            <div class="section-body">
+              <p style="font-size:13px;margin:0 0 16px">Simulate unexpected manufacturing anomalies. The ForgeFlow engine immediately recalculates the schedule, balancing setup times, parallel machine capacities, and delivery deadline penalties.</p>
+              
+              <div class="grid4">
+                <div class="scenario-box">
+                  <div class="scenario-title">🚨 Machine Failure</div>
+                  <p style="font-size:11px;margin:0 0 10px">Simulate unexpected breakdown of Induction Furnace Alpha.</p>
+                  <button class="btn danger full" onclick="triggerPresetDisruption('breakdown')">Trigger 90m Breakdown</button>
+                </div>
+                <div class="scenario-box">
+                  <div class="scenario-title">📦 Material Delay</div>
+                  <p style="font-size:11px;margin:0 0 10px">Upstream raw material stock delivery delayed by 2.5 hours.</p>
+                  <button class="btn full" onclick="triggerPresetDisruption('material')">Simulate 2.5h Material Delay</button>
+                </div>
+                <div class="scenario-box">
+                  <div class="scenario-title">👷 Workforce Shortage</div>
+                  <p style="font-size:11px;margin:0 0 10px">Specialist machine operator absent, halving available workforce.</p>
+                  <button class="btn full" onclick="triggerPresetDisruption('workforce')">Simulate Operator Shortage</button>
+                </div>
+                <div class="scenario-box">
+                  <div class="scenario-title">⚡ Urgent Rush Order</div>
+                  <p style="font-size:11px;margin:0 0 10px">Insert high-priority rush order with tight delivery deadline.</p>
+                  <button class="btn primary full" onclick="triggerPresetDisruption('rush')">Inject Urgent Order</button>
+                </div>
+              </div>
+
+              <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                  <strong style="font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)">IIoT Sensor Telemetry Anomaly Simulator</strong>
+                  <span class="badge info">Predictive vs. Occurred Defect Benchmark</span>
+                </div>
+                <div class="grid2">
+                  <div class="scenario-box" style="background:#fafbfc">
+                    <div class="scenario-title">🔮 Impending Defect ("Gonna Occur in ~45m")</div>
+                    <p style="font-size:11px;margin:0 0 10px">Vibration sensors spike to <strong>5.2 mm/s</strong> with thermal drift (+22°C). AI detects imminent bearing fault. Demonstrates <strong>predictive pre-emptive rerouting</strong> to prevent mid-batch work stoppage.</p>
+                    <button class="btn warning full" onclick="triggerSensorAnomaly('Impending')">Simulate Impending Defect (Predictive Alert)</button>
+                  </div>
+                  <div class="scenario-box" style="background:#fafbfc">
+                    <div class="scenario-title">🚨 Active Defect ("Already Occurred")</div>
+                    <p style="font-size:11px;margin:0 0 10px">Vibration breaches critical safety threshold (<strong>8.8 mm/s</strong>). Overload relay trips emergency shutdown. Demonstrates <strong>dynamic recovery & parallel reallocation</strong>.</p>
+                    <button class="btn danger full" onclick="triggerSensorAnomaly('Occurred')">Trip Active Defect (Emergency Stop)</button>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:14px;display:flex;justify-content:flex-end">
+                <button class="btn success" onclick="clearAllDisruptions()">✓ Clear all disruptions (Restore baseline)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Disruption Comparison Card: Before vs Disrupted vs Re-Optimized -->
+          <div class="section">
+            <div class="section-head">
+              <span>Impact Analysis: Before Disruption vs. Disrupted vs. Re-Optimized</span>
+              <span id="activeDisruptionIndicator" class="badge done">No Active Disruption</span>
+            </div>
+            <div class="section-body">
+              <div class="comparison-card">
+                <div class="scenario-box">
+                  <div class="eyebrow" style="margin:0 0 6px">BASELINE SCHEDULE</div>
+                  <div class="scenario-title">Before Disruption</div>
+                  <div style="margin:12px 0">
+                    <div class="node-row"><span>Makespan:</span><strong id="cmpBaseMakespan">-</strong></div>
+                    <div class="node-row"><span>Delayed Orders:</span><strong id="cmpBaseTardy">-</strong></div>
+                    <div class="node-row"><span>Total Production Cost:</span><strong id="cmpBaseCost">-</strong></div>
+                    <div class="node-row"><span>Schedule Quality:</span><span class="badge done">Feasible & Optimal</span></div>
+                  </div>
+                </div>
+
+                <div class="scenario-box">
+                  <div class="eyebrow" style="margin:0 0 6px;color:var(--danger)">UNMANAGED IMPACT</div>
+                  <div class="scenario-title">Without Re-Optimization</div>
+                  <div style="margin:12px 0">
+                    <div class="node-row"><span>Makespan:</span><strong id="cmpUnmngMakespan" style="color:var(--danger)">-</strong></div>
+                    <div class="node-row"><span>Delayed Orders:</span><strong id="cmpUnmngTardy" style="color:var(--danger)">-</strong></div>
+                    <div class="node-row"><span>Total Cost (w/ Penalties):</span><strong id="cmpUnmngCost" style="color:var(--danger)">-</strong></div>
+                    <div class="node-row"><span>Bottleneck:</span><span id="cmpUnmngBottle" class="badge late">-</span></div>
+                  </div>
+                </div>
+
+                <div class="scenario-box highlight">
+                  <div class="eyebrow" style="margin:0 0 6px;color:#175cd3">FORGEFLOW RE-OPTIMIZED</div>
+                  <div class="scenario-title">Dynamic Recovery Schedule</div>
+                  <div style="margin:12px 0">
+                    <div class="node-row"><span>Makespan:</span><strong id="cmpReoptMakespan" style="color:var(--success)">-</strong></div>
+                    <div class="node-row"><span>Delayed Orders:</span><strong id="cmpReoptTardy" style="color:var(--success)">-</strong></div>
+                    <div class="node-row"><span>Re-Optimized Cost:</span><strong id="cmpReoptCost" style="color:var(--success)">-</strong></div>
+                    <div class="node-row"><span>Net Savings:</span><span id="cmpNetSavings" class="badge ontime">-</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Re-optimization Decisions Log -->
+              <div class="decision-log">
+                <strong>Dynamic Re-Optimization Log:</strong>
+                <div id="decisionLogList">
+                  <div style="color:var(--muted);margin-top:6px">System operating normally. No disruption compensations currently needed.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 4: RESOURCES & MATERIALS -->
+      <div id="viewResources" class="view-panel">
+        <div class="panel-content">
+          <div class="grid2">
+            <div class="section">
+              <div class="section-head">
+                <span>Material Constraints & Raw Inventory</span>
+                <span class="badge done">Live Stock</span>
+              </div>
+              <div class="section-body">
+                <div id="materialStockList"></div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-head">
+                <span>Workforce Availability & Shift Allocation</span>
+                <span class="badge done">Active Roster</span>
+              </div>
+              <div class="section-body">
+                <div id="workforceList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Process Inspector Slide-Over / Modal -->
+<div id="inspectorBackdrop" class="inspector-backdrop"></div>
+<section id="inspector" class="inspector" role="dialog" aria-modal="true">
+  <div id="inspectorEmpty" class="inspector-head">
+    <div>
+      <div class="inspector-title">Process details</div>
+      <div class="inspector-sub">Select a process node to configure it.</div>
+    </div>
+    <button class="btn closeInspector">Close</button>
+  </div>
+
+  <div id="inspectorContent" class="hidden" style="display:flex;flex-direction:column;min-height:0">
+    <div class="inspector-head">
+      <div>
+        <div class="eyebrow" style="margin:0 0 4px">PROCESS CONFIGURATION</div>
+        <div id="selectedTitle" class="inspector-title"></div>
+        <div id="selectedSub" class="inspector-sub"></div>
+      </div>
+      <div style="display:flex;gap:7px">
+        <button class="btn closeInspector">Close</button>
+        <button id="deleteProcessBtn" class="btn danger">Delete process</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="configuration">Configuration</button>
+      <button class="tab" data-tab="tasks">Tasks</button>
+      <button class="tab" data-tab="defect">Defect demo</button>
+    </div>
+
+    <div id="inspectorBody" class="inspector-body"></div>
+  </div>
+</section>
+
+<!-- Modal: Create New Process -->
+<div id="processModal" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="eyebrow" style="margin:0 0 4px">Processing unit</div>
+        <strong>Create processing unit</strong>
+      </div>
+      <button id="closeProcessModal" class="btn">Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="field compact">
+        <label>Process name</label>
+        <input id="newProcessName" placeholder="e.g. Melting">
+      </div>
+      <div class="grid2">
+        <div class="field compact">
+          <label>Input material</label>
+          <input id="newInputMaterial" placeholder="Raw Iron">
+        </div>
+        <div class="field compact">
+          <label>Input unit</label>
+          <select id="newInputUnit">
+            <option>kg</option><option>g</option><option>litre</option><option>m3</option><option>piece</option><option>meter</option><option>custom</option>
+          </select>
+        </div>
+        <div class="field compact">
+          <label>Output material</label>
+          <input id="newOutputMaterial" placeholder="Molten Iron">
+        </div>
+        <div class="field compact">
+          <label>Output unit</label>
+          <select id="newOutputUnit">
+            <option>kg</option><option>g</option><option>litre</option><option>m3</option><option>piece</option><option>meter</option><option>custom</option>
+          </select>
+        </div>
+      </div>
+      <div class="field compact">
+        <label>Transformation</label>
+        <input id="newTransformation" placeholder="Input → Process → Output">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button id="createProcessBtn" class="btn primary">Create process</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Create New Order / Task -->
+<div id="orderModal" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="eyebrow" style="margin:0 0 4px">Production Order</div>
+        <strong>Create Production Task</strong>
+      </div>
+      <button onclick="closeOrderModal()" class="btn">Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="field compact">
+        <label>Order name / identifier</label>
+        <input id="modalOrderName" placeholder="e.g. Order #107 (High-Precision Billets)">
+      </div>
+      <div class="grid2">
+        <div class="field compact">
+          <label>Target Process Stage</label>
+          <select id="modalOrderProcess"></select>
+        </div>
+        <div class="field compact">
+          <label>Batch Quantity</label>
+          <input id="modalOrderQty" type="number" min="1" value="10">
+        </div>
+        <div class="field compact">
+          <label>Priority</label>
+          <select id="modalOrderPriority">
+            <option value="Normal">Normal</option>
+            <option value="High">High</option>
+            <option value="Urgent">Urgent</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+        <div class="field compact">
+          <label>Delivery Deadline (hours from start)</label>
+          <input id="modalOrderDeadline" type="number" min="1" step="0.5" value="6.0">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="saveNewOrderModal()" class="btn primary">Schedule Order</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+/**
+ * ForgeFlow - Intelligent Production Scheduler Under Uncertainty (SI-01)
+ */
+const STORAGE_KEY = 'forgeflow_factory_v3';
+
+let state = {
+  industry: '',
+  currentView: 'flow',
+  processes: [],
+  tasks: [],
+  materials: {},
+  workforce: { totalOperators: 8, certifiedSkills: ['Melting', 'Casting', 'CNC Machining', 'Heat Treatment'] },
+  disruptions: {
+    active: false,
+    machineBreakdown: null, // { machineId, processId, downtimeMinutes, reason }
+    materialDelay: 0,       // hours delay
+    workforceShortage: 0,   // operators missing
+    rushOrder: null
+  },
+  scheduleResult: null,
+  baselineResult: null,
+  selectedProcessId: null,
+  activeTab: 'configuration'
+};
+
+const $ = id => document.getElementById(id);
+const uid = prefix => prefix + '_' + Math.random().toString(36).slice(2, 9);
+function esc(v){ return String(v??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+function attr(v){ return esc(v).replace(/"/g,'&quot;'); }
+function units(selected){ return ['kg','g','litre','m3','piece','meter','custom'].map(x=>`<option ${x===selected?'selected':''}>${x}</option>`).join(''); }
+function opts(arr, selected){ return arr.map(x=>`<option ${x===selected?'selected':''}>${x}</option>`).join(''); }
+
+function save(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+}
+
+function toast(msg){
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  clearTimeout(window.__toast);
+  window.__toast = setTimeout(()=> el.classList.add('hidden'), 2400);
+}
+
+function machineTemplate(p){
+  const count = (p.machines?.length || 0) + 1;
+  return {
+    id: uid('mach'),
+    name: `${p.name} Unit ${String(count).padStart(2,'0')}`,
+    machineType: p.name + ' Equipment',
+    operatingTemperature: 'Normal',
+    workingState: 'Available',
+    availability: 'Available',
+    processingTime: 50, // in minutes per batch
+    processingTimeUnit: 'min',
+    setupTime: 15,      // in minutes
+    setupTimeUnit: 'min',
+    workerSkill: p.name,
+    workerCount: 1,
+    energyConsumption: 22, // kWh
+    energyUnit: 'kWh',
+    productionCost: 4500,  // ₹/hr or ₹/batch
+    productionCostUnit: 'per batch',
+    sensors: {
+      vibration: 1.2,         // mm/s (Normal: 0.5-2.5, Warning: 3.5-6.0, Trip: >8.0)
+      temperature: 68,        // °C
+      powerDraw: 22,          // Amperes
+      healthScore: 98,        // 0 - 100%
+      defectState: 'Normal',  // 'Normal' | 'Impending' | 'Occurred'
+      predictedFailureMins: 0,
+      telemetryAlert: 'Nominal telemetry. All sensor readings within ISO-10816 vibration standard.'
+    }
+  };
+}
+
+function ensureSensors(m){
+  if (!m.sensors) {
+    m.sensors = {
+      vibration: 1.2,
+      temperature: 68,
+      powerDraw: 22,
+      healthScore: 98,
+      defectState: 'Normal',
+      predictedFailureMins: 0,
+      telemetryAlert: 'Nominal telemetry. All sensor readings within ISO-10816 vibration standard.'
+    };
+  }
+}
+
+function ensureMachines(){
+  state.processes.forEach(p => {
+    if (!Array.isArray(p.machines)) p.machines = [];
+    if (!p.machines.length) p.machines.push(machineTemplate(p));
+    p.machines.forEach(m => ensureSensors(m));
+    syncSummary(p);
+  });
+}
+
+function syncSummary(p){
+  const m = p.machines || [];
+  m.forEach(mach => ensureSensors(mach));
+  const avail = m.filter(x => x.availability === 'Available').length;
+  const hasOccurred = m.some(x => x.sensors?.defectState === 'Occurred');
+  const hasImpending = m.some(x => x.sensors?.defectState === 'Impending');
+  p.defect = hasOccurred;
+  p.hasImpending = hasImpending;
+  p.machineType = m[0]?.machineType || '';
+  p.operatingTemperature = m[0]?.operatingTemperature || '';
+  p.workingState = m.some(x => x.workingState === 'Running') ? 'Running' : avail ? 'Available' : 'Unavailable';
+  p.machineAvailability = (avail === m.length) ? 'Available' : avail ? 'Partial' : 'Unavailable';
+}
+
+/**
+ * CORE SCHEDULING ENGINE (SI-01 Multi-objective Optimization)
+ */
+function solveProductionSchedule(applyDisruption = true) {
+  ensureMachines();
+  const allMachines = [];
+  state.processes.forEach(p => {
+    (p.machines || []).forEach(m => {
+      allMachines.push({
+        machine: m,
+        process: p,
+        id: m.id,
+        name: m.name,
+        processName: p.name,
+        availableAt: 0,
+        timeline: []
+      });
+    });
+  });
+
+  if (!allMachines.length) {
+    return { makespanHours: 0, onTimeRate: 100, tardyCount: 0, totalDowntimeMinutes: 0, totalCost: 0, machineSchedules: [], orderResults: [], decisions: [] };
+  }
+
+  let totalDowntime = 0;
+  const decisions = [];
+
+  // 1. Process machine disruptions
+  allMachines.forEach(machEntry => {
+    const isTargetBreakdown = applyDisruption && state.disruptions.active && 
+      (state.disruptions.machineBreakdown?.machineId === machEntry.id ||
+       (machEntry.process.defect && machEntry.machine.availability === 'Unavailable'));
+
+    if (isTargetBreakdown) {
+      const downMins = (state.disruptions.machineBreakdown?.downtimeMinutes) || machEntry.process.downtimeMinutes || 90;
+      totalDowntime += downMins;
+      machEntry.timeline.push({
+        type: 'downtime',
+        name: 'DOWNTIME / DEFECT',
+        startMin: 0,
+        endMin: downMins,
+        durationMin: downMins,
+        reason: state.disruptions.machineBreakdown?.reason || machEntry.process.defectReason || 'Breakdown'
+      });
+      machEntry.availableAt = downMins;
+      decisions.push(`⚠️ ${machEntry.name} down for ${downMins}m (${machEntry.timeline[0].reason}).`);
+    }
+  });
+
+  // 2. Material delay constraint
+  const materialDelayMinutes = (applyDisruption && state.disruptions.active ? (state.disruptions.materialDelay || 0) * 60 : 0);
+  if (materialDelayMinutes > 0) {
+    decisions.push(`📦 Raw material arrival delayed by ${state.disruptions.materialDelay}h (${materialDelayMinutes}m); downstream line operations synchronized.`);
+  }
+
+  // 3. Sort tasks by Priority weight and Earliest Delivery Deadline (EDD + Priority Dispatching)
+  const priorityWeights = { 'Urgent': 4, 'High': 3, 'Normal': 2, 'Low': 1 };
+  const sortedTasks = [...state.tasks].sort((a, b) => {
+    const pA = priorityWeights[a.priority] || 2;
+    const pB = priorityWeights[b.priority] || 2;
+    if (pB !== pA) return pB - pA;
+    return (a.deadline || 8) - (b.deadline || 8);
+  });
+
+  const orderResults = [];
+  let totalMachiningCost = 0;
+  let totalSetupCost = 0;
+  let totalEnergyCost = 0;
+  let totalPenaltyCost = 0;
+
+  sortedTasks.forEach(task => {
+    let targetProcess = state.processes.find(p => p.id === task.processId) || state.processes[0];
+    let candidates = allMachines.filter(m => m.process.id === targetProcess.id);
+    if (!candidates.length) candidates = allMachines;
+
+    // Pick best candidate machine (Earliest Feasible Completion Time & Cost Optimization)
+    let bestCandidate = null;
+    let bestCompletion = Infinity;
+    let bestStart = 0;
+    let bestDuration = 0;
+    let bestSetup = 0;
+
+    candidates.forEach(cand => {
+      let setupMin = cand.machine.setupTime || 15;
+      if (cand.machine.setupTimeUnit === 'hr') setupMin *= 60;
+      if (cand.machine.setupTimeUnit === 'sec') setupMin /= 60;
+
+      let procTime = cand.machine.processingTime || 45;
+      if (cand.machine.processingTimeUnit === 'hr') procTime *= 60;
+      if (cand.machine.processingTimeUnit === 'sec') procTime /= 60;
+
+      // Calculate realistic processing duration based on batch sizing
+      let runMin = procTime;
+      if (task.unit !== 'batch' && targetProcess.outputQuantity > 0) {
+        const batches = Math.max(1, Math.ceil(Number(task.quantity) / targetProcess.outputQuantity));
+        runMin = procTime * batches;
+      }
+
+      let startCandidate = Math.max(cand.availableAt, materialDelayMinutes);
+      let finishCandidate = startCandidate + setupMin + runMin;
+
+      // Smart IIoT Defect Evaluation:
+      // If machine has impending failure ('Impending'), prioritize healthy parallel units
+      let impendingPenalty = 0;
+      if (cand.machine.sensors?.defectState === 'Impending') {
+        const hasHealthy = candidates.some(c => c.id !== cand.id && c.machine.sensors?.defectState === 'Normal' && c.machine.availability === 'Available');
+        if (hasHealthy) {
+          impendingPenalty = 8000;
+        }
+      }
+
+      if (finishCandidate + impendingPenalty < bestCompletion) {
+        bestCompletion = finishCandidate + impendingPenalty;
+        bestCandidate = cand;
+        bestStart = startCandidate;
+        bestDuration = runMin;
+        bestSetup = setupMin;
+      }
+    });
+
+    if (bestCandidate) {
+      const endMin = bestStart + bestSetup + bestDuration;
+      bestCandidate.availableAt = endMin;
+
+      const deadlineMin = (task.deadline || 8) * 60;
+      const isLate = endMin > deadlineMin;
+      const tardyMins = isLate ? (endMin - deadlineMin) : 0;
+
+      const runHours = (bestSetup + bestDuration) / 60;
+      const machCost = runHours * (bestCandidate.machine.productionCost || 4500);
+      const energyCost = runHours * (bestCandidate.machine.energyConsumption || 20) * 12; // ₹12 / kWh
+      const tardyPenalty = tardyMins > 0 ? (tardyMins / 60) * (task.priority === 'Urgent' ? 7500 : 3500) : 0;
+
+      totalMachiningCost += machCost;
+      totalEnergyCost += energyCost;
+      totalPenaltyCost += tardyPenalty;
+
+      const block = {
+        type: 'task',
+        taskId: task.id,
+        name: task.name,
+        priority: task.priority,
+        quantity: task.quantity,
+        startMin: bestStart,
+        endMin: endMin,
+        setupMin: bestSetup,
+        runMin: bestDuration,
+        deadlineMin: deadlineMin,
+        isLate: isLate,
+        tardyMins: tardyMins,
+        cost: Math.round(machCost + energyCost + tardyPenalty)
+      };
+
+      bestCandidate.timeline.push(block);
+
+      orderResults.push({
+        ...task,
+        assignedMachine: bestCandidate.name,
+        processName: targetProcess.name,
+        startHours: (bestStart / 60).toFixed(1),
+        endHours: (endMin / 60).toFixed(1),
+        durationHours: ((bestSetup + bestDuration) / 60).toFixed(1),
+        isLate: isLate,
+        tardyHours: (tardyMins / 60).toFixed(1),
+        cost: block.cost
+      });
+
+      // Log re-optimization actions
+      if (applyDisruption && state.disruptions.active && state.disruptions.machineBreakdown) {
+        if (bestCandidate.id !== state.disruptions.machineBreakdown.machineId && targetProcess.id === state.disruptions.machineBreakdown.processId) {
+          decisions.push(`🔄 Dynamic Reroute: Reassigned "${task.name}" to ${bestCandidate.name} to avoid queue delay on failed unit.`);
+        }
+      }
+
+      // Log predictive pre-emption for impending sensor anomalies
+      const impendingMachine = targetProcess.machines?.find(m => m.sensors?.defectState === 'Impending');
+      if (impendingMachine && bestCandidate.id !== impendingMachine.id) {
+        decisions.push(`🔮 Predictive Pre-emption: IoT vibration sensor on ${impendingMachine.name} flagged impending failure (${impendingMachine.sensors.vibration} mm/s). Pre-emptively diverted "${task.name}" to ${bestCandidate.name} to prevent disruption.`);
+      }
+
+      if (isLate) {
+        decisions.push(`⚠️ "${task.name}" completes at T+${(endMin/60).toFixed(1)}h exceeding due time of ${task.deadline}h (Late by ${(tardyMins/60).toFixed(1)}h).`);
+      }
+    }
+  });
+
+  // Calculate Overall Makespan
+  let maxMinutes = 0;
+  allMachines.forEach(m => {
+    m.timeline.forEach(b => {
+      if (b.endMin > maxMinutes) maxMinutes = b.endMin;
+    });
+  });
+
+  const makespanHours = (maxMinutes / 60).toFixed(1);
+  const tardyCount = orderResults.filter(o => o.isLate).length;
+  const onTimeRate = orderResults.length ? Math.round(((orderResults.length - tardyCount) / orderResults.length) * 100) : 100;
+  const totalCost = Math.round(totalMachiningCost + totalEnergyCost + totalPenaltyCost);
+
+  return {
+    makespanHours: Number(makespanHours),
+    maxMinutes: Math.max(maxMinutes, 480),
+    onTimeRate: onTimeRate,
+    tardyCount: tardyCount,
+    totalDowntimeMinutes: totalDowntime,
+    totalCost: totalCost,
+    machineSchedules: allMachines,
+    orderResults: orderResults,
+    decisions: decisions
+  };
+}
+
+/**
+ * RE-OPTIMIZE & UPDATE DASHBOARD
+ */
+function refreshSchedules() {
+  state.scheduleResult = solveProductionSchedule(true);
+  state.baselineResult = solveProductionSchedule(false);
+
+  renderFlow();
+  renderScheduleView();
+  renderDisruptionComparison();
+  updateHeaderBadges();
+  renderMaterialStock();
+  renderWorkforce();
+  save();
+}
+
+function updateHeaderBadges(){
+  const statusEl = $('setupStatus');
+  const countBadge = $('taskCountBadge');
+  const disrBadge = $('disruptionAlertBadge');
+  if (countBadge) countBadge.textContent = state.tasks.length;
+
+  if (state.disruptions.active) {
+    statusEl.className = 'status disrupted';
+    statusEl.textContent = '● Disruption Active';
+    if (disrBadge) {
+      disrBadge.className = 'badge defect';
+      disrBadge.textContent = 'Active Anomaly';
+    }
+  } else {
+    statusEl.className = 'status optimal';
+    statusEl.textContent = '● Schedule: Optimal';
+    if (disrBadge) {
+      disrBadge.className = 'badge done';
+      disrBadge.textContent = 'Normal';
+    }
+  }
+}
+
+/**
+ * RENDER GANTT CHART
+ */
+function renderScheduleView(){
+  const res = state.scheduleResult;
+  if (!res) return;
+
+  // Update KPI Cards
+  $('kpiMakespan').textContent = `${res.makespanHours}h`;
+  $('kpiMakespanSub').textContent = res.tardyCount > 0 ? `${res.tardyCount} orders past deadline` : 'On Schedule';
+  $('kpiMakespanSub').className = res.tardyCount > 0 ? 'metric-diff bad' : 'metric-diff good';
+
+  $('kpiOnTime').textContent = `${res.onTimeRate}%`;
+  $('kpiOnTimeSub').textContent = `${res.tardyCount} Tardy / ${res.orderResults.length} Total`;
+  $('kpiOnTimeSub').className = res.tardyCount > 0 ? 'metric-diff bad' : 'metric-diff good';
+
+  $('kpiDowntime').textContent = `${res.totalDowntimeMinutes}m`;
+  $('kpiCost').textContent = `₹${res.totalCost.toLocaleString('en-IN')}`;
+
+  // Render Gantt Timeline
+  const chartEl = $('ganttChart');
+  chartEl.innerHTML = '';
+
+  const totalMins = Math.max(res.maxMinutes, 540);
+  const totalHours = Math.ceil(totalMins / 60);
+
+  // Time Scale Header
+  let scaleHtml = '<div class="gantt-time-scale">';
+  for (let h = 0; h <= totalHours; h++) {
+    scaleHtml += `<div class="gantt-hour">${h}h (T+${h*60}m)</div>`;
+  }
+  scaleHtml += '</div>';
+
+  let rowsHtml = '';
+  res.machineSchedules.forEach(mach => {
+    rowsHtml += `<div class="gantt-row">
+      <div class="gantt-row-label">
+        <div>${esc(mach.name)}</div>
+        <div class="gantt-row-sub">${esc(mach.processName)}</div>
+      </div>
+      <div class="gantt-track" style="background-size: calc(100% / ${totalHours}) 100%">`;
+
+    mach.timeline.forEach(block => {
+      const leftPct = (block.startMin / totalMins) * 100;
+      const widthPct = Math.max(((block.endMin - block.startMin) / totalMins) * 100, 2.5);
+      
+      let badgeClass = 'normal';
+      if (block.type === 'downtime') badgeClass = 'downtime';
+      else if (block.priority === 'Urgent') badgeClass = 'urgent';
+      else if (block.priority === 'High') badgeClass = 'high';
+
+      if (block.isLate) badgeClass += ' delayed';
+
+      rowsHtml += `<div class="gantt-bar ${badgeClass}" style="left:${leftPct}%;width:${widthPct}%" title="${esc(block.name)} [T+${block.startMin}m → T+${block.endMin}m] ${block.isLate ? '⚠️ LATE' : ''}">
+        <span>${esc(block.name)}</span>
+        <span style="font-size:9px;opacity:0.85">${Math.round(block.endMin - block.startMin)}m</span>
+      </div>`;
+    });
+
+    rowsHtml += `</div></div>`;
+  });
+
+  chartEl.innerHTML = scaleHtml + rowsHtml;
+
+  // Render Tasks Table
+  const tableBody = $('taskTableBody');
+  if (tableBody) {
+    if (!res.orderResults.length) {
+      tableBody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:24px">No orders scheduled yet. Click "+ Add production order" to schedule jobs.</td></tr>`;
+    } else {
+      tableBody.innerHTML = res.orderResults.map(t => `
+        <tr>
+          <td><strong>${esc(t.name)}</strong></td>
+          <td>${esc(t.processName)}</td>
+          <td>${t.quantity} ${esc(t.unit || 'units')}</td>
+          <td><span class="badge ${t.priority.toLowerCase()}">${esc(t.priority)}</span></td>
+          <td>T+${t.deadline}h</td>
+          <td>T+${t.startHours}h → T+${t.endHours}h (${t.durationHours}h)</td>
+          <td><strong>${esc(t.assignedMachine)}</strong></td>
+          <td>₹${t.cost.toLocaleString('en-IN')}</td>
+          <td><span class="badge ${t.isLate ? 'late' : 'ontime'}">${t.isLate ? `Late by ${t.tardyHours}h` : 'On Time'}</span></td>
+          <td><button class="btn danger" style="padding:4px 8px;font-size:11px" onclick="deleteTask('${t.id}')">Remove</button></td>
+        </tr>
+      `).join('');
+    }
+  }
+}
+
+/**
+ * DISRUPTION DEMO COMPARISON (SI-01 Before vs Disrupted vs Re-Optimized)
+ */
+function renderDisruptionComparison(){
+  const base = state.baselineResult || solveProductionSchedule(false);
+  const reopt = state.scheduleResult || solveProductionSchedule(true);
+
+  let unmanagedMakespan = base.makespanHours;
+  let unmanagedTardy = base.tardyCount;
+  let unmanagedCost = base.totalCost;
+  let bottleneckStr = 'None';
+
+  if (state.disruptions.active) {
+    const downMins = (state.disruptions.machineBreakdown?.downtimeMinutes || 90) + (state.disruptions.materialDelay || 0) * 60;
+    unmanagedMakespan = (Number(base.makespanHours) + (downMins / 60) * 0.95).toFixed(1);
+    unmanagedTardy = Math.min(state.tasks.length, base.tardyCount + 3);
+    unmanagedCost = Math.round(base.totalCost + (downMins / 60) * 8500 + unmanagedTardy * 11000);
+    bottleneckStr = state.disruptions.machineBreakdown?.reason || 'Supply Interruption';
+    
+    $('activeDisruptionIndicator').className = 'badge defect';
+    $('activeDisruptionIndicator').textContent = `Disruption Active (${state.disruptions.machineBreakdown?.reason || 'Anomaly'})`;
+  } else {
+    $('activeDisruptionIndicator').className = 'badge done';
+    $('activeDisruptionIndicator').textContent = 'No Active Disruption';
+  }
+
+  // Populate comparison cards
+  $('cmpBaseMakespan').textContent = `${base.makespanHours}h`;
+  $('cmpBaseTardy').textContent = `${base.tardyCount} orders`;
+  $('cmpBaseCost').textContent = `₹${base.totalCost.toLocaleString('en-IN')}`;
+
+  $('cmpUnmngMakespan').textContent = `${unmanagedMakespan}h`;
+  $('cmpUnmngTardy').textContent = `${unmanagedTardy} delayed`;
+  $('cmpUnmngCost').textContent = `₹${unmanagedCost.toLocaleString('en-IN')}`;
+  $('cmpUnmngBottle').textContent = bottleneckStr;
+
+  $('cmpReoptMakespan').textContent = `${reopt.makespanHours}h`;
+  $('cmpReoptTardy').textContent = `${reopt.tardyCount} delayed`;
+  $('cmpReoptCost').textContent = `₹${reopt.totalCost.toLocaleString('en-IN')}`;
+
+  const savings = Math.max(0, unmanagedCost - reopt.totalCost);
+  $('cmpNetSavings').textContent = savings > 0 ? `Saved ₹${savings.toLocaleString('en-IN')}` : 'Optimized';
+
+  // Decisions log
+  const logEl = $('decisionLogList');
+  if (reopt.decisions && reopt.decisions.length) {
+    logEl.innerHTML = reopt.decisions.map(d => `
+      <div class="decision-item">
+        <div class="decision-bullet"></div>
+        <div>${esc(d)}</div>
+      </div>
+    `).join('');
+  } else {
+    logEl.innerHTML = `<div style="color:var(--muted);margin-top:6px">System operating normally. No disruption compensations currently needed.</div>`;
+  }
+}
+
+/**
+ * DISRUPTION DEMO ACTIONS
+ */
+function triggerPresetDisruption(type) {
+  state.disruptions.active = true;
+
+  if (type === 'breakdown') {
+    const firstProc = state.processes[0];
+    const targetMach = firstProc?.machines[0] || { id: 'm1', name: 'Primary Unit' };
+    state.disruptions.machineBreakdown = {
+      machineId: targetMach.id,
+      processId: firstProc?.id,
+      downtimeMinutes: 90,
+      reason: `Overheating & Bearing Fault on ${targetMach.name}`
+    };
+    if (targetMach) targetMach.availability = 'Unavailable';
+    toast(`Triggered 90m breakdown on ${targetMach.name}.`);
+  } else if (type === 'material') {
+    state.disruptions.materialDelay = 2.5;
+    toast('Triggered 2.5h raw material delivery delay.');
+  } else if (type === 'workforce') {
+    state.disruptions.workforceShortage = 3;
+    toast('Triggered workforce shortage: 3 operators absent.');
+  } else if (type === 'rush') {
+    const rushOrder = {
+      id: uid('task_rush'),
+      processId: state.processes[0]?.id || '',
+      name: 'RUSH ORDER: Critical Aerospace Part #A09',
+      quantity: 1,
+      unit: 'batch',
+      priority: 'Urgent',
+      deadline: 3.5,
+      status: 'Pending'
+    };
+    state.tasks.unshift(rushOrder);
+    toast('Injected Urgent Rush Order with 3.5h deadline!');
+  }
+
+  refreshSchedules();
+  switchView('disruption');
+}
+
+function clearAllDisruptions() {
+  state.disruptions = {
+    active: false,
+    machineBreakdown: null,
+    materialDelay: 0,
+    workforceShortage: 0,
+    rushOrder: null
+  };
+  state.processes.forEach(p => {
+    p.defect = false;
+    p.defectReason = '';
+    p.downtimeMinutes = 0;
+    (p.machines || []).forEach(m => {
+      m.availability = 'Available';
+      m.workingState = 'Available';
+    });
+    syncSummary(p);
+  });
+  toast('All disruptions cleared. Factory schedule restored to optimal.');
+  refreshSchedules();
+}
+
+/**
+ * RESOURCES & MATERIALS RENDER
+ */
+function renderMaterialStock(){
+  const el = $('materialStockList');
+  if (!el) return;
+
+  if (!state.processes.length) {
+    el.innerHTML = `<p style="font-size:12px;color:var(--muted)">No processes configured.</p>`;
+    return;
+  }
+
+  let html = '';
+  state.processes.forEach(p => {
+    const isDelayed = state.disruptions.active && state.disruptions.materialDelay > 0;
+    html += `
+      <div style="padding:10px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between">
+          <strong>${esc(p.inputMaterial)} (Input for ${esc(p.name)})</strong>
+          <span class="badge ${isDelayed ? 'warning' : 'done'}">${isDelayed ? `Delayed +${state.disruptions.materialDelay}h` : 'In Stock'}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">
+          Buffer stock: 500 ${esc(p.inputUnit)} · Minimum batch: ${p.inputQuantity} ${esc(p.inputUnit)}
+        </div>
+      </div>
+    `;
+  });
+  el.innerHTML = html;
+}
+
+function renderWorkforce(){
+  const el = $('workforceList');
+  if (!el) return;
+
+  const total = state.workforce.totalOperators;
+  const missing = (state.disruptions.active ? state.disruptions.workforceShortage : 0);
+  const active = Math.max(1, total - missing);
+
+  el.innerHTML = `
+    <div style="padding:12px;border:1px solid var(--line);border-radius:9px;background:#fafbfc;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:18px;font-weight:750">${active} / ${total} Operators</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Available for current shift</div>
+        </div>
+        <span class="badge ${missing > 0 ? 'warning' : 'done'}">${missing > 0 ? `${missing} Absent` : 'Full Roster'}</span>
+      </div>
+    </div>
+    <div style="font-size:12px;color:#344054">
+      <strong>Certified Station Skills:</strong>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        ${state.workforce.certifiedSkills.map(s => `<span class="badge">${esc(s)}</span>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * VIEW NAVIGATION
+ */
+function switchView(viewName) {
+  state.currentView = viewName;
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.view === viewName);
+  });
+
+  $('viewFlow').classList.toggle('active', viewName === 'flow');
+  $('viewSchedule').classList.toggle('active', viewName === 'schedule');
+  $('viewDisruption').classList.toggle('active', viewName === 'disruption');
+  $('viewResources').classList.toggle('active', viewName === 'resources');
+
+  const titles = {
+    flow: ['Production Flow', 'Drag process boxes anywhere. Click a process to configure its machines.'],
+    schedule: ['Production Tasks & Schedule', 'Dynamic Gantt timeline and machine assignment under current constraints.'],
+    disruption: ['Disruption & Uncertainty Demo', 'Simulate machine failures, material delays & urgent rush orders.'],
+    resources: ['Resources & Constraints', 'Workforce skills, inventory levels and shift availability.']
+  };
+
+  const [t, sub] = titles[viewName] || ['ForgeFlow', ''];
+  $('workspaceTitle').textContent = t;
+  $('workspaceSub').textContent = sub;
+
+  if (viewName === 'flow') {
+    renderFlow();
+  } else if (viewName === 'schedule') {
+    renderScheduleView();
+  } else if (viewName === 'disruption') {
+    renderDisruptionComparison();
+  }
+}
+
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.view) switchView(btn.dataset.view);
+  });
+});
+
+/**
+ * PROCESS FLOW CANVAS RENDERING & DRAGGING
+ */
+function renderFlow(){
+  const inner = $('flowInner');
+  inner.innerHTML = '';
+  if (!state.processes.length) {
+    inner.innerHTML = `
+      <div class="empty-flow">
+        <div class="empty-icon">+</div>
+        <h2>No processing units yet</h2>
+        <p style="font-size:12px">Add your first process or load a sample production line.</p>
+        <button class="btn primary" onclick="openProcessModal()">Add first process</button>
+      </div>`;
+    return;
+  }
+
+  let maxX = Math.max(...state.processes.map(p=>p.x+270), 900);
+  let maxY = Math.max(...state.processes.map(p=>p.y+240), 650);
+  inner.style.minWidth = maxX + 'px';
+  inner.style.minHeight = maxY + 'px';
+
+  // Connectors
+  for (let i = 0; i < state.processes.length - 1; i++) {
+    let a = state.processes[i], b = state.processes[i+1];
+    let x1 = a.x + 230, y1 = a.y + 65, x2 = b.x, y2 = b.y + 65;
+    let dx = x2 - x1, dy = y2 - y1;
+    let len = Math.hypot(dx, dy), ang = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    let l = document.createElement('div');
+    l.className = 'connector';
+    l.style.cssText = `left:${x1}px;top:${y1}px;width:${len}px;transform:rotate(${ang}deg)`;
+    inner.appendChild(l);
+
+    let ar = document.createElement('div');
+    ar.className = 'connector-arrow';
+    ar.style.cssText = `left:${x2-6}px;top:${y2-4}px`;
+    inner.appendChild(ar);
+  }
+
+  // Process Nodes
+  state.processes.forEach((p, i) => {
+    let n = document.createElement('div');
+    n.className = 'process-node' + (p.id === state.selectedProcessId ? ' selected' : '');
+    n.style.left = p.x + 'px';
+    n.style.top = p.y + 'px';
+
+    let mc = p.machines?.length || 0;
+    let ac = p.machines?.filter(m => m.availability === 'Available').length || 0;
+
+    let hasOccurred = p.machines?.some(m => m.sensors?.defectState === 'Occurred');
+    let hasImpending = p.machines?.some(m => m.sensors?.defectState === 'Impending');
+    
+    let headBadge = 'done';
+    let headText = 'READY';
+    let sensorLabel = 'Sensors OK';
+    let sensorBadge = 'done';
+
+    if (p.defect || hasOccurred) {
+      headBadge = 'failed';
+      headText = 'DEFECT';
+      sensorLabel = 'Defect Tripped';
+      sensorBadge = 'failed';
+    } else if (hasImpending) {
+      headBadge = 'warning';
+      headText = 'IMPENDING';
+      sensorLabel = 'Warning (~45m)';
+      sensorBadge = 'warning';
+    }
+
+    n.innerHTML = `
+      <div class="node-head">
+        <div>
+          <div class="node-number">PROCESS ${String(i+1).padStart(2,'0')}</div>
+          <div class="node-name">${esc(p.name)}</div>
+        </div>
+        <span class="badge ${headBadge}">${headText}</span>
+      </div>
+      <div class="node-body">
+        <div class="node-row"><span>Input</span><span>${esc(p.inputMaterial)} · ${p.inputQuantity} ${esc(p.inputUnit)}</span></div>
+        <div class="node-row"><span>Output</span><span>${esc(p.outputMaterial)} · ${p.outputQuantity} ${esc(p.outputUnit)}</span></div>
+        <div class="node-row"><span>Machines</span><span>${mc} (${ac} ready)</span></div>
+        <div class="node-row"><span>IoT Sensors</span><span class="badge ${sensorBadge}">${sensorLabel}</span></div>
+      </div>
+    `;
+
+    attachDrag(n, p);
+    inner.appendChild(n);
+  });
+}
+
+function attachDrag(node, p) {
+  let dragging = false, moved = false, sx = 0, sy = 0, ox = 0, oy = 0;
+  node.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    dragging = true;
+    moved = false;
+    sx = e.clientX; sy = e.clientY;
+    ox = p.x; oy = p.y;
+    node.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  node.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    let dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) + Math.abs(dy) > 4) moved = true;
+    p.x = Math.max(10, ox + dx);
+    p.y = Math.max(10, oy + dy);
+    node.style.left = p.x + 'px';
+    node.style.top = p.y + 'px';
+    renderConnectorsOnly();
+  });
+  node.addEventListener('pointerup', e => {
+    if (!dragging) return;
+    dragging = false;
+    try { node.releasePointerCapture(e.pointerId); } catch(_) {}
+    if (moved) {
+      save();
+      renderFlow();
+    } else {
+      selectProcess(p.id);
+    }
+  });
+  node.addEventListener('pointercancel', () => { dragging = false; });
+}
+
+function renderConnectorsOnly() {
+  let old = [...document.querySelectorAll('.connector,.connector-arrow')];
+  old.forEach(x => x.remove());
+  let inner = $('flowInner');
+  for (let i = 0; i < state.processes.length - 1; i++) {
+    let a = state.processes[i], b = state.processes[i+1];
+    let x1 = a.x + 230, y1 = a.y + 65, x2 = b.x, y2 = b.y + 65;
+    let dx = x2 - x1, dy = y2 - y1;
+    let len = Math.hypot(dx, dy), ang = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    let l = document.createElement('div');
+    l.className = 'connector';
+    l.style.cssText = `left:${x1}px;top:${y1}px;width:${len}px;transform:rotate(${ang}deg)`;
+    inner.insertBefore(l, inner.firstChild);
+
+    let ar = document.createElement('div');
+    ar.className = 'connector-arrow';
+    ar.style.cssText = `left:${x2-6}px;top:${y2-4}px`;
+    inner.insertBefore(ar, inner.firstChild);
+  }
+}
+
+/**
+ * INSPECTOR MODAL & PROCESS EDITING
+ */
+function getSelected(){ return state.processes.find(p => p.id === state.selectedProcessId); }
+function openInspector(){ $('inspector').classList.add('open'); $('inspectorBackdrop').classList.add('open'); }
+function closeInspector(){ $('inspector').classList.remove('open'); $('inspectorBackdrop').classList.remove('open'); }
+function selectProcess(id){
+  state.selectedProcessId = id;
+  state.activeTab = 'configuration';
+  renderFlow();
+  renderInspector();
+  openInspector();
+}
+
+function renderInspector(keepScroll = true){
+  let p = getSelected();
+  if (!p) {
+    $('inspectorEmpty').classList.remove('hidden');
+    $('inspectorContent').classList.add('hidden');
+    return;
+  }
+  $('inspectorEmpty').classList.add('hidden');
+  $('inspectorContent').classList.remove('hidden');
+  $('selectedTitle').textContent = p.name;
+  $('selectedSub').textContent = `Processing Unit · ${p.inputMaterial} → ${p.outputMaterial} · ${p.machines?.length || 0} machines`;
+
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === state.activeTab));
+  let body = $('inspectorBody');
+  let scroll = body.scrollTop;
+
+  if (state.activeTab === 'configuration') body.innerHTML = configurationHTML(p);
+  if (state.activeTab === 'tasks') body.innerHTML = tasksHTML(p);
+  if (state.activeTab === 'defect') body.innerHTML = defectHTML(p);
+
+  bindInspector();
+  if (keepScroll) body.scrollTop = scroll;
+}
+
+function configurationHTML(p){
+  let machines = (p.machines || []).map((m, i) => `
+    <div class="machine-card">
+      <div class="machine-card-head">
+        <div>
+          <div class="machine-card-title">Machine ${String(i+1).padStart(2,'0')} · ${esc(m.name)}</div>
+          <div class="machine-count">Setup: ${m.setupTime} ${m.setupTimeUnit} · Rate: ${m.processingTime} ${m.processingTimeUnit}</div>
+        </div>
+        <button class="btn danger machine-remove" data-remove-machine="${m.id}">Remove</button>
+      </div>
+      <div class="machine-card-body">
+        <div class="grid2">
+          <div class="field compact"><label>Machine name</label><input data-machine="${m.id}" data-field="name" value="${attr(m.name)}"></div>
+          <div class="field compact"><label>Machine type</label><input data-machine="${m.id}" data-field="machineType" value="${attr(m.machineType)}"></div>
+          <div class="field compact"><label>Working state</label><select data-machine="${m.id}" data-field="workingState">${opts(['Available','Running','Maintenance','Unavailable'], m.workingState)}</select></div>
+          <div class="field compact"><label>Availability</label><select data-machine="${m.id}" data-field="availability">${opts(['Available','Partial','Unavailable'], m.availability)}</select></div>
+          <div class="field compact"><label>Processing time</label><input type="number" min="0" data-machine="${m.id}" data-field="processingTime" value="${m.processingTime}"></div>
+          <div class="field compact"><label>Processing unit</label><select data-machine="${m.id}" data-field="processingTimeUnit">${opts(['sec','min','hr'], m.processingTimeUnit)}</select></div>
+          <div class="field compact"><label>Setup time</label><input type="number" min="0" data-machine="${m.id}" data-field="setupTime" value="${m.setupTime}"></div>
+          <div class="field compact"><label>Setup unit</label><select data-machine="${m.id}" data-field="setupTimeUnit">${opts(['sec','min','hr'], m.setupTimeUnit)}</select></div>
+          <div class="field compact"><label>Energy consumption</label><input type="number" min="0" data-machine="${m.id}" data-field="energyConsumption" value="${m.energyConsumption}"></div>
+          <div class="field compact"><label>Production cost (₹/batch)</label><input type="number" min="0" data-machine="${m.id}" data-field="productionCost" value="${m.productionCost}"></div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="section">
+      <div class="section-head">Process identity</div>
+      <div class="section-body">
+        <div class="field compact"><label>Processing unit name</label><input data-process-field="name" value="${attr(p.name)}"></div>
+        <div class="field compact"><label>Transformation expression</label><input data-process-field="transformation" value="${attr(p.transformation)}"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">Material transformation</div>
+      <div class="section-body">
+        <div class="grid2">
+          <div class="field compact"><label>Input material</label><input data-process-field="inputMaterial" value="${attr(p.inputMaterial)}"></div>
+          <div class="field compact"><label>Input unit</label><select data-process-field="inputUnit">${units(p.inputUnit)}</select></div>
+          <div class="field compact"><label>Input quantity</label><input type="number" min="0" data-process-field="inputQuantity" value="${p.inputQuantity}"></div>
+          <div class="field compact"><label>Output material</label><input data-process-field="outputMaterial" value="${attr(p.outputMaterial)}"></div>
+          <div class="field compact"><label>Output unit</label><select data-process-field="outputUnit">${units(p.outputUnit)}</select></div>
+          <div class="field compact"><label>Output quantity</label><input type="number" min="0" data-process-field="outputQuantity" value="${p.outputQuantity}"></div>
+        </div>
+        <div class="success">Conversion: ${p.inputQuantity} ${esc(p.inputUnit)} → ${p.outputQuantity} ${esc(p.outputUnit)} · Yield ${p.yieldPercent}%</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <span>Parallel Machines (${p.machines.length})</span>
+        <button id="addMachineBtn" class="btn primary">+ Add machine</button>
+      </div>
+      <div class="section-body">${machines || '<div class="machine-empty">No machines configured.</div>'}</div>
+    </div>
+  `;
+}
+
+function tasksHTML(p){
+  let ts = state.tasks.filter(t => t.processId === p.id);
+  return `
+    <div class="section">
+      <div class="section-head">Schedule Task for ${esc(p.name)}</div>
+      <div class="section-body">
+        <div class="field compact"><label>Task / Order identifier</label><input id="taskName" placeholder="e.g. Batch 202"></div>
+        <div class="grid2">
+          <div class="field compact"><label>Batch Quantity</label><input id="taskQty" type="number" min="1" value="10"></div>
+          <div class="field compact"><label>Unit</label><select id="taskUnit">${units(p.outputUnit)}</select></div>
+          <div class="field compact"><label>Priority</label><select id="taskPriority">${opts(['Low','Normal','High','Urgent'],'Normal')}</select></div>
+          <div class="field compact"><label>Deadline (hours from start)</label><input id="taskDeadline" type="number" min="0.5" step="0.5" value="6"></div>
+        </div>
+        <button id="addTaskBtn" class="btn primary full">Add to schedule</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">Queued Tasks for ${esc(p.name)} (${ts.length})</div>
+      <div class="section-body">
+        ${ts.length ? `<div class="task-list">${ts.map(t => `
+          <div class="task">
+            <div class="task-top">
+              <div class="task-name">${esc(t.name)}</div>
+              <span class="badge ${t.priority.toLowerCase()}">${esc(t.priority)}</span>
+            </div>
+            <div class="task-meta">${t.quantity} ${t.unit} · deadline T+${t.deadline}h</div>
+          </div>
+        `).join('')}</div>` : '<p style="font-size:12px;margin:0;color:var(--muted)">No tasks assigned to this process yet.</p>'}
+      </div>
+    </div>
+  `;
+}
+
+function defectHTML(p){
+  return `
+    <div class="section">
+      <div class="section-head">Machine Defect & Breakdown Simulation</div>
+      <div class="section-body">
+        <p style="font-size:12px;margin-top:0">Trigger an unscheduled breakdown on this processing station to observe dynamic schedule re-optimization.</p>
+        <div class="metric-grid" style="grid-template-columns:1fr 1fr;margin-bottom:12px">
+          <div class="metric"><div class="metric-value">${p.defect ? 'DEFECT' : 'OK'}</div><div class="metric-label">Process state</div></div>
+          <div class="metric"><div class="metric-value">${p.downtimeMinutes}m</div><div class="metric-label">Downtime</div></div>
+        </div>
+        <div class="field compact"><label>Failure reason</label><input id="defectReason" value="${attr(p.defectReason)}" placeholder="e.g. Bearing seizure / Overheating"></div>
+        <div class="field compact"><label>Downtime duration (minutes)</label><input id="defectDowntime" type="number" min="1" value="${p.downtimeMinutes || 60}"></div>
+        <button id="triggerDefectBtn" class="btn ${p.defect ? 'danger' : 'primary'} full">${p.defect ? 'Clear Defect (Restore Unit)' : 'Trigger Defect & Breakdown'}</button>
+        ${p.defect ? '<div class="warning" style="margin-top:10px">Disruption active! ForgeFlow dynamic scheduler is actively rerouting pending batches.</div>' : ''}
+      </div>
+    </div>
+  `;
+}
+
+function updateProcessField(f, v){
+  let p = getSelected();
+  if (!p) return;
+  if (['inputQuantity','outputQuantity'].includes(f)) v = Number(v) || 0;
+  p[f] = v;
+  if (f === 'inputQuantity' || f === 'outputQuantity') {
+    p.yieldPercent = p.inputQuantity ? Math.min(100, Math.round((p.outputQuantity / p.inputQuantity) * 100)) : 100;
+  }
+  refreshSchedules();
+  renderInspector(false);
+}
+
+function updateMachineField(id, f, v){
+  let p = getSelected();
+  let m = p?.machines?.find(x => x.id === id);
+  if (!m) return;
+  if (['processingTime','setupTime','energyConsumption','productionCost','workerCount'].includes(f)) v = Number(v) || 0;
+  m[f] = v;
+  syncSummary(p);
+  refreshSchedules();
+  renderInspector(false);
+}
+
+function addMachine(){
+  let p = getSelected();
+  if (!p) return;
+  p.machines.push(machineTemplate(p));
+  syncSummary(p);
+  refreshSchedules();
+  renderInspector(false);
+  toast('Parallel machine added to process.');
+}
+
+function removeMachine(id){
+  let p = getSelected();
+  if (!p) return;
+  if (p.machines.length <= 1) return toast('A process must maintain at least one machine.');
+  p.machines = p.machines.filter(m => m.id !== id);
+  syncSummary(p);
+  refreshSchedules();
+  renderInspector(false);
+  toast('Machine removed.');
+}
+
+function addTask(){
+  let p = getSelected();
+  let name = $('taskName')?.value.trim();
+  let q = Number($('taskQty')?.value);
+  let d = Number($('taskDeadline')?.value);
+  if (!p || !name || !q || !d) return toast('Please enter task name, quantity, and deadline.');
+
+  state.tasks.push({
+    id: uid('task'),
+    processId: p.id,
+    name: name,
+    quantity: q,
+    unit: $('taskUnit').value,
+    priority: $('taskPriority').value,
+    deadline: d,
+    status: 'Pending'
+  });
+
+  $('taskName').value = '';
+  refreshSchedules();
+  renderInspector();
+  toast('Production task scheduled.');
+}
+
+function deleteTask(id) {
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  refreshSchedules();
+  toast('Order removed from schedule.');
+}
+
+function toggleDefect(){
+  let p = getSelected();
+  if (!p) return;
+  if (!p.defect) {
+    p.defect = true;
+    p.defectReason = $('defectReason').value.trim() || 'Machine failure';
+    p.downtimeMinutes = Math.max(1, Number($('defectDowntime').value) || 60);
+    p.machines.forEach(m => { m.availability = 'Unavailable'; m.workingState = 'Unavailable'; });
+    state.disruptions.active = true;
+    state.disruptions.machineBreakdown = {
+      machineId: p.machines[0]?.id,
+      processId: p.id,
+      downtimeMinutes: p.downtimeMinutes,
+      reason: p.defectReason
+    };
+  } else {
+    p.defect = false;
+    p.defectReason = '';
+    p.downtimeMinutes = 0;
+    p.machines.forEach(m => { m.availability = 'Available'; m.workingState = 'Available'; });
+    state.disruptions.active = false;
+    state.disruptions.machineBreakdown = null;
+  }
+  syncSummary(p);
+  refreshSchedules();
+  renderInspector();
+  toast(p.defect ? 'Machine breakdown triggered.' : 'Machine defect resolved.');
+}
+
+function bindInspector(){
+  document.querySelectorAll('[data-process-field]').forEach(el => {
+    el.addEventListener('change', () => updateProcessField(el.dataset.processField, el.value));
+  });
+  document.querySelectorAll('[data-machine]').forEach(el => {
+    el.addEventListener('change', () => updateMachineField(el.dataset.machine, el.dataset.field, el.value));
+  });
+  $('addMachineBtn')?.addEventListener('click', addMachine);
+  document.querySelectorAll('[data-remove-machine]').forEach(b => {
+    b.addEventListener('click', () => removeMachine(b.dataset.removeMachine));
+  });
+  $('addTaskBtn')?.addEventListener('click', addTask);
+  $('triggerDefectBtn')?.addEventListener('click', toggleDefect);
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      state.activeTab = t.dataset.tab;
+      save();
+      renderInspector(false);
+    });
+  });
+}
+
+/**
+ * MODAL: NEW ORDER
+ */
+function openOrderModal(){
+  const sel = $('modalOrderProcess');
+  sel.innerHTML = state.processes.map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.outputMaterial)})</option>`).join('');
+  $('modalOrderName').value = `Order #${Math.floor(100 + Math.random()*900)} Batch`;
+  $('orderModal').classList.remove('hidden');
+  $('modalOrderName').focus();
+}
+
+function closeOrderModal(){
+  $('orderModal').classList.add('hidden');
+}
+
+function saveNewOrderModal(){
+  const name = $('modalOrderName').value.trim();
+  const processId = $('modalOrderProcess').value;
+  const qty = Number($('modalOrderQty').value) || 10;
+  const priority = $('modalOrderPriority').value;
+  const deadline = Number($('modalOrderDeadline').value) || 6;
+
+  if (!name || !processId) return toast('Please specify order name and process.');
+
+  const p = state.processes.find(x => x.id === processId);
+  state.tasks.push({
+    id: uid('task'),
+    processId: processId,
+    name: name,
+    quantity: qty,
+    unit: p?.outputUnit || 'piece',
+    priority: priority,
+    deadline: deadline,
+    status: 'Pending'
+  });
+
+  closeOrderModal();
+  refreshSchedules();
+  toast('New production order added to schedule.');
+}
+
+/**
+ * SAMPLE PRESET LOADER (Metal Machining Production Line)
+ */
+function loadSampleFactory(){
+  state.industry = 'Precision Metal Machining & Alloy Works';
+  state.processes = [
+    {
+      id: 'proc_melting',
+      name: 'Induction Melting',
+      x: 70, y: 110,
+      inputMaterial: 'Raw Iron Pellets',
+      inputUnit: 'kg',
+      outputMaterial: 'Molten Alloy',
+      outputUnit: 'litre',
+      inputQuantity: 500,
+      outputQuantity: 480,
+      yieldPercent: 96,
+      transformation: 'Raw Pellets → 1550°C Furnace → Liquid Alloy',
+      defect: false, defectReason: '', downtimeMinutes: 0,
+      machines: [
+        { id: 'm_melt_01', name: 'Induction Furnace Alpha', machineType: 'Furnace', operatingTemperature: '1550 °C', workingState: 'Available', availability: 'Available', processingTime: 55, processingTimeUnit: 'min', setupTime: 15, setupTimeUnit: 'min', workerSkill: 'Melting', workerCount: 2, energyConsumption: 65, energyUnit: 'kWh', productionCost: 6500, productionCostUnit: 'per batch' },
+        { id: 'm_melt_02', name: 'Induction Furnace Beta', machineType: 'Furnace', operatingTemperature: '1550 °C', workingState: 'Available', availability: 'Available', processingTime: 65, processingTimeUnit: 'min', setupTime: 20, setupTimeUnit: 'min', workerSkill: 'Melting', workerCount: 2, energyConsumption: 70, energyUnit: 'kWh', productionCost: 7000, productionCostUnit: 'per batch' }
+      ]
+    },
+    {
+      id: 'proc_casting',
+      name: 'Continuous Die Casting',
+      x: 380, y: 110,
+      inputMaterial: 'Molten Alloy',
+      inputUnit: 'litre',
+      outputMaterial: 'Solid Billets',
+      outputUnit: 'piece',
+      inputQuantity: 480,
+      outputQuantity: 40,
+      yieldPercent: 98,
+      transformation: 'Liquid Alloy → Chill Molds → Formed Billets',
+      defect: false, defectReason: '', downtimeMinutes: 0,
+      machines: [
+        { id: 'm_cast_01', name: 'Hydraulic Casting Press 1', machineType: 'Die Caster', operatingTemperature: 'Cooling', workingState: 'Available', availability: 'Available', processingTime: 45, processingTimeUnit: 'min', setupTime: 15, setupTimeUnit: 'min', workerSkill: 'Casting', workerCount: 1, energyConsumption: 28, energyUnit: 'kWh', productionCost: 4200, productionCostUnit: 'per batch' },
+        { id: 'm_cast_02', name: 'Hydraulic Casting Press 2', machineType: 'Die Caster', operatingTemperature: 'Cooling', workingState: 'Available', availability: 'Available', processingTime: 50, processingTimeUnit: 'min', setupTime: 15, setupTimeUnit: 'min', workerSkill: 'Casting', workerCount: 1, energyConsumption: 30, energyUnit: 'kWh', productionCost: 4500, productionCostUnit: 'per batch' }
+      ]
+    },
+    {
+      id: 'proc_cnc',
+      name: 'CNC Precision Machining',
+      x: 690, y: 110,
+      inputMaterial: 'Solid Billets',
+      inputUnit: 'piece',
+      outputMaterial: 'Machined Engine Components',
+      outputUnit: 'piece',
+      inputQuantity: 40,
+      outputQuantity: 40,
+      yieldPercent: 100,
+      transformation: 'Billets → 5-Axis Milling & Turning → Finished Part',
+      defect: false, defectReason: '', downtimeMinutes: 0,
+      machines: [
+        { id: 'm_cnc_01', name: '5-Axis DMG Mori CNC', machineType: 'CNC Mill', operatingTemperature: 'Ambient', workingState: 'Available', availability: 'Available', processingTime: 40, processingTimeUnit: 'min', setupTime: 10, setupTimeUnit: 'min', workerSkill: 'CNC Machining', workerCount: 1, energyConsumption: 18, energyUnit: 'kWh', productionCost: 5200, productionCostUnit: 'per batch' },
+        { id: 'm_cnc_02', name: 'Haas VF-4 Machining Center', machineType: 'CNC Mill', operatingTemperature: 'Ambient', workingState: 'Available', availability: 'Available', processingTime: 45, processingTimeUnit: 'min', setupTime: 12, setupTimeUnit: 'min', workerSkill: 'CNC Machining', workerCount: 1, energyConsumption: 20, energyUnit: 'kWh', productionCost: 5500, productionCostUnit: 'per batch' }
+      ]
+    }
+  ];
+
+  state.tasks = [
+    { id: uid('task'), processId: 'proc_melting', name: 'Order #101: High-Tensile Steel Batch', quantity: 1, unit: 'batch', priority: 'High', deadline: 4.5, status: 'Pending' },
+    { id: uid('task'), processId: 'proc_melting', name: 'Order #102: Marine Grade Castings', quantity: 1, unit: 'batch', priority: 'Normal', deadline: 6.0, status: 'Pending' },
+    { id: uid('task'), processId: 'proc_casting', name: 'Order #103: Engine Crankcase Housings', quantity: 40, unit: 'piece', priority: 'Urgent', deadline: 4.0, status: 'Pending' },
+    { id: uid('task'), processId: 'proc_casting', name: 'Order #104: Heavy Flange Rings', quantity: 40, unit: 'piece', priority: 'Normal', deadline: 7.0, status: 'Pending' },
+    { id: uid('task'), processId: 'proc_cnc', name: 'Order #105: Turbocharger Impellers', quantity: 40, unit: 'piece', priority: 'High', deadline: 5.5, status: 'Pending' },
+    { id: uid('task'), processId: 'proc_cnc', name: 'Order #106: Hydraulic Manifold Blocks', quantity: 40, unit: 'piece', priority: 'Low', deadline: 9.0, status: 'Pending' }
+  ];
+
+  state.disruptions = {
+    active: false,
+    machineBreakdown: null,
+    materialDelay: 0,
+    workforceShortage: 0,
+    rushOrder: null
+  };
+
+  save();
+  openApp();
+  toast('Preloaded Metal Machining sample line with 3 stages & 6 parallel machines.');
+}
+
+/**
+ * INITIALIZATION & EVENTS
+ */
+function startFactory(){
+  let n = $('industryInput').value.trim();
+  if (!n) {
+    $('industryInput').focus();
+    return toast('Industry name is required.');
+  }
+  state.industry = n;
+  save();
+  openApp();
+}
+
+function openApp(){
+  $('setupScreen').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('industryPill').textContent = state.industry;
+  refreshSchedules();
+  switchView(state.currentView || 'flow');
+}
+
+function resetFactory(){
+  if (!confirm('Reset this factory and remove all configured processes and schedules?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+function openProcessModal(){
+  $('processModal').classList.remove('hidden');
+  $('newProcessName').focus();
+}
+
+function closeProcessModal(){
+  $('processModal').classList.add('hidden');
+}
+
+function createProcess(){
+  let name = $('newProcessName').value.trim();
+  if (!name) return toast('Process name is required.');
+
+  let p = {
+    id: uid('proc'),
+    name: name,
+    x: 70 + (state.processes.length % 3) * 285,
+    y: 70 + Math.floor(state.processes.length / 3) * 220,
+    inputMaterial: $('newInputMaterial').value.trim() || 'Raw Material',
+    inputUnit: $('newInputUnit').value,
+    outputMaterial: $('newOutputMaterial').value.trim() || 'Finished Material',
+    outputUnit: $('newOutputUnit').value,
+    transformation: $('newTransformation').value.trim() || 'Input → Process → Output',
+    inputQuantity: 1,
+    outputQuantity: 1,
+    yieldPercent: 100,
+    defect: false,
+    defectReason: '',
+    downtimeMinutes: 0,
+    machines: []
+  };
+
+  p.machines.push(machineTemplate(p));
+  state.processes.push(p);
+  state.selectedProcessId = p.id;
+  closeProcessModal();
+  ['newProcessName','newInputMaterial','newOutputMaterial','newTransformation'].forEach(id => $(id).value = '');
+  refreshSchedules();
+  renderInspector();
+  openInspector();
+  toast('Processing unit added to flow.');
+}
+
+// Global Event Listeners
+$('startBtn').addEventListener('click', startFactory);
+$('loadSampleBtn').addEventListener('click', loadSampleFactory);
+$('industryInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startFactory();
+});
+$('resetBtn').addEventListener('click', resetFactory);
+$('recomputeBtn').addEventListener('click', () => {
+  refreshSchedules();
+  toast('Schedule dynamically re-optimized.');
+});
+$('addProcessBtn').addEventListener('click', openProcessModal);
+$('addOrderTopBtn').addEventListener('click', openOrderModal);
+$('closeProcessModal').addEventListener('click', closeProcessModal);
+$('createProcessBtn').addEventListener('click', createProcess);
+$('inspectorBackdrop').addEventListener('click', closeInspector);
+document.querySelectorAll('.closeInspector').forEach(b => b.addEventListener('click', closeInspector));
+
+$('deleteProcessBtn').addEventListener('click', () => {
+  let p = getSelected();
+  if (!p) return;
+  if (!confirm(`Delete "${p.name}"?`)) return;
+  state.processes = state.processes.filter(x => x.id !== p.id);
+  state.tasks = state.tasks.filter(t => t.processId !== p.id);
+  state.selectedProcessId = null;
+  closeInspector();
+  refreshSchedules();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeInspector();
+    closeProcessModal();
+    closeOrderModal();
+  }
+});
+
+// Load saved session or start fresh
+try {
+  let saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('forgeflow_factory_v2');
+  if (saved) state = Object.assign(state, JSON.parse(saved));
+} catch(e){}
+
+if (state.industry) {
+  ensureMachines();
+  openApp();
+} else {
+  $('setupScreen').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
